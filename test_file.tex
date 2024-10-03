@@ -1,0 +1,36 @@
+\documentclass{article}
+\usepackage{xcolor}
+
+\begin{document}
+
+\begin{enumerate}
+
+    \item #playpy [factoring_trinomial]
+
+    \item #playpy [factoring_trinomial]
+
+    \item #playpy [vector_form]
+
+    \item #playpy [vector_form]
+
+    
+
+\end{enumerate}
+
+#df [
+        variable name = rand_values,
+        add values = rand[
+            min = 96,
+            max = 98,
+            type = decimal [2],
+            amount = 42
+        ]
+    ] #call [
+        !rand_values,
+        tabular[
+            columns = 10,
+            style = 15,
+        ]
+    ]
+
+\end{document}
