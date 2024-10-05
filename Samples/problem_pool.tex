@@ -1,5 +1,44 @@
-#recpy [factoring_trinomial]Find the sum of the zeros for the quadratic: 
-        #df [
+#recpy [multiple_choice]
+ % new variable -----------------
+ variable name = choice_order,
+ cross referencing = na,
+ allow repeat = False,
+ add values = rand[
+     max = 5,
+     amount = 5
+ ],
+
+ 
+ % new variable -----------------
+ variable name = rearranged_choices,
+ cross referencing = na,
+ add values = arrange[
+     variable = #choices,
+     order = #choice_order
+ ]
+ #stoppy
+
+
+#recpy [horizontal_choices]
+\begin{minipage}[t]{.2\textwidth}
+    a. #call [rearranged_choices[1]]
+\end{minipage}
+\begin{minipage}[t]{.2\textwidth}
+    b. #call [rearranged_choices[2]]
+\end{minipage}
+\begin{minipage}[t]{.2\textwidth}
+    c. #call [rearranged_choices[3]]
+\end{minipage}
+\begin{minipage}[t]{.2\textwidth}
+    d. #call [rearranged_choices[4]]
+\end{minipage}
+\begin{minipage}[t]{.2\textwidth}
+    e. #call [rearranged_choices[5]]
+\end{minipage}
+#stoppy
+
+
+#recpy [factoring_trinomial]Find the sum of the zeros for the quadratic: #df [
         % new variable -----------------
         variable name = fact_values,
         allow repeat = False,
@@ -19,8 +58,9 @@
             expand latex (#fact_values[1]*x - #fact_values[2]) * (#fact_values[3]*x - #fact_values[4])
         ],
 
+        
         % new variable -----------------
-        variable name = mult_choice_raw,
+        variable name = choices,
         local variable = True,
         % correct answer
         add values = extend[
@@ -33,84 +73,12 @@
             weights = [1,1,1,0,1,1,1],
             amount = 4,
             type = improper[2,15]
-        ]
-        allow repeat = False,
-
-        % new variable ---------------
-        variable name = mult_choice_latex,
-        local variable = True,
-        add values = extend[
-            latex #mult_choice_raw
-        ],
-
-        % new variable ---------------
-        variable name = mult_choice_mathmode,
-        local variable = True,
-        add values = extend[
-            verbatim $ #mult_choice_latex $
-        ],
-
-        % new variable ---------------
-        variable name = mult_choice_correct_marked,
-        local variable = True,
-        add values = extend[
-            verbatim \textcolor{blue}{#mult_choice_mathmode[1]},
-            verbatim #mult_choice_mathmode[2],
-            verbatim #mult_choice_mathmode[3],
-            verbatim #mult_choice_mathmode[4],
-            verbatim #mult_choice_mathmode[5]
-        ],
-
-        % new variable ---------------
-        variable name = sort,
-        local variable = True,
-
-        add values = rand[
-            min = 1,
-            max = 5,
-            amount = 5,
         ],
         allow repeat = False,
 
-        % new variable ---------------
-        variable name = mult_choice,
-        add values = arrange[
-            variable = #mult_choice_correct_marked,
-            order = #sort
-        ]
+        % a variable named choices must be already defined with 5 options (the first option being the correct one) prior to the following:
+        #playpy [multiple_choice]  
+]$f(x)=#call [expanded_expression]$
 
-    ] $f(x)=#call [expanded_expression]$
-    \begin{enumerate}
-        \item #call [mult_choice[1]]
-        \item #call [mult_choice[2]]
-        \item #call [mult_choice[3]]
-        \item #call [mult_choice[4]]
-        \item #call [mult_choice[5]]
-    \end{enumerate}#stoppy
-
-#recpy [vector_form]Convert the following quadratic to vector form.#df [
-
-    variable name = vals,
-    add values = rand [
-
-            min = -5,
-            max = 5,
-            amount = 3,
-            weights = [1,1,1,1,1,0,1,1,1,1,1]
-    ] 
-    cross referencing = permutation,
-
-    variable name = solution,
-    add values = extend[
-        simplify latex #vals[1] * (x- #vals[2])**2 + #vals[3]
-    ],
-
-    variable name = quadratic_expression,
-    add values = extend[
-        expand simplify latex #vals[1] * (x- #vals[2])**2 + #vals[3]
-    ]
-
-]$f(x)=#call [quadratic_expression]$
-
-\textcolor{red}{$#call [solution]$}
+#playpy [horizontal_choices]
 #stoppy

@@ -5,7 +5,7 @@ import sympy
 import random
 from fractions import Fraction
 
-from pyarrow import string
+from pyarrow import string, list_
 
 # ------------DEFAULT SETTINGS--------------------------------------------------------------------
 home_directory = "/home/tovy/Desktop/"
@@ -150,7 +150,7 @@ def user_dict_and_container (str_body, keyword):
 
         # partitioning only the content between keyword and open_container
         active_argument = active_body.partition(keyword)[2].partition(f" {user_dict['open_container']}")[0]
-        print(active_argument)
+
         #  removing leading whitespace before argument, while also recording it in str_remove
         for k in active_argument:
             if k == " ":
@@ -349,19 +349,19 @@ def list_order (list_var):
     #-----------------------------------------------
     string_bool = False # True if string value
     # is found
-    allowed_number_characters = [".", "/", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
+    allowed_number_characters = [".", "/", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "-"]
     for item in list_var:
         str_item = str(item)
         for char in str_item:
             if char not in allowed_number_characters:
                 string_bool = True
                 break
-            elif str_item.count(".") > 1:
+            elif str_item.count(".") > 1 or str_item.count("/") > 1 or str_item.count(" ") > 1 or str_item.count("-") > 1:
                 string_bool = True
                 break
         if string_bool:
             break
-            
+
     # building list_tuple, a list of tuples of the
     # form (item, item_value). item_value will be
     # used for sorting later
@@ -1327,6 +1327,7 @@ def load_playpy(str_body):
     playpy = r"#playpy"
     recpy = r"#recpy"
     stoppy = r"#stoppy"
+
     active_body = str_body
     # loop for each #playpy found
     while True:
@@ -1334,10 +1335,9 @@ def load_playpy(str_body):
             break
 
         str_remove, playpy_code, user_dict_playpy =  user_dict_and_container(active_body, playpy)
-
         str_copy = recpy_callback(playpy_code,active_body)
-
         active_body = active_body.replace(str_remove,str_copy, 1)
+
     str_body = active_body
 
     # cleans up original document by removing #recpy  and stoppy from body
@@ -1358,56 +1358,14 @@ def load_playpy(str_body):
     return str_body
 
 
-def list_subdirectories():
-    # List all subdirectories from root folder
-    paths = [home_directory]
-
-    i = 0
-    while True:
-        active_directory = paths[i]
-        os.chdir(active_directory)
-        for item in os.listdir(active_directory):
-            if os.path.isdir(item):
-                full_path = f"{active_directory}{item}/"
-                paths.append(full_path)
-
-        if i == len(paths) - 1:
-            break
-        else:
-            i = i + 1
-
-    return paths
-
-
-def most_recent(filename_endswith=".tex"):
-    # Returns the last modified latex file
-    directory_list = list_subdirectories()
-
-    # COMPARABLE VARIABLES-------------
-    most_recent_file = ["", "", -1]  # Placeholder for [directory, file, modified time]
-    # ---------------------------------
-
-    for f in directory_list:
-        os.chdir(f)
-        for tex_file in os.listdir(f):
-            if tex_file.endswith(filename_endswith) and  "--" not in tex_file:
-                current_file = [f, tex_file, os.path.getmtime(tex_file)]
-                if current_file[2] >= most_recent_file[2]:
-                    most_recent_file = current_file
-
-    return most_recent_file
-
-
 def load_local_packages(str_body):
     """
     Updates .tex string, imports local packages into file.
     :param str_body:
     :return: str_body
     """
-    active_string = str_body
-    directory = os.getcwd()
-    os.chdir("/media/tovy/1TB/Templates/")
 
+    active_string = str_body
     for file in os.listdir("."):
         if file.endswith(".sty"):
             file_name = file.replace(".sty", "")
@@ -1427,17 +1385,21 @@ def load_local_packages(str_body):
 
     str_body = active_string
 
-    os.chdir(directory)
     return str_body
 
 
 def update_body (str_body, bool_load_playpy=True, bool_load_fetch_variables = True, bool_load_local_packages = True):
 
     if bool_load_playpy:
+        print("loading playpy text:")
         str_body = load_playpy(str_body)
+
     if bool_load_fetch_variables:
+        print("reading #df and #call arguments:")
         str_body = load_fetch_variables(str_body)
+
     if bool_load_local_packages:
+        print("loading local packages:")
         str_body = load_local_packages(str_body)
 
     return str_body
@@ -1455,6 +1417,50 @@ def compile_tex (file):
     return None
 
 
+def select_file():
+    """
+    Returns list of .tex files ordered from most recent to last modified
+    :return:
+    """
+
+    list_tex_files = []
+    for file in os.listdir('.'):
+        if file.endswith(".tex"):
+            list_tex_files.append([file, os.path.getmtime(file)])
+
+    if len(list_tex_files) == 0:
+        print(f"Error: No tex files found in:\n{os.getcwd()}")
+        sys.exit()
+
+    # arrange list_tex_files based on last date modified
+    while True:
+        repeat_bool = False
+        i = 1
+        while i < len(list_tex_files):
+            if list_tex_files[i][1] > list_tex_files[i - 1][1]:
+                repeat_bool = True
+                temp = list_tex_files[i]
+                list_tex_files[i] = list_tex_files[i - 1]
+                list_tex_files[i - 1] = temp
+            i = i + 1
+
+        if not repeat_bool:
+            break
+
+    # displays files in terminal
+    print(f"tex files in directory:\n{os.getcwd()}\nOrdered by date-modified, starting with most recently modified.\n")
+
+    i = 1
+    while i <= len(list_tex_files):
+        print(f"{i}-{list_tex_files[i - 1][0]}")
+        i = i + 1
+
+    user_input = int(input(f"\nSelect file number (1 - {len(list_tex_files)}): ") or 1)
+    file = list_tex_files[user_input - 1][0]
+
+    return file
+
+
 def main ():
     """
     Reads file, stores and fetch variables. Creates a new file with updated body,
@@ -1463,8 +1469,7 @@ def main ():
     """
 
     # finds and selects most recent file in directory
-    file = most_recent()[1]
-    os.chdir(most_recent()[0])
+    file = select_file()
 
     with open(file, 'r') as rfile:
         read_file = rfile.read()
@@ -1478,8 +1483,10 @@ def main ():
     compile_tex(new_file)
 
     # convert new_pdf to old
-    os.system(f"mv {new_file.split('.')[0]}.pdf {new_file.split('--')[0]}.pdf")
+    os.system(f"mv {new_file.split('.')[0]}.pdf {new_file.split('--Standalone.tex')[0]}.pdf")
 
+    with open(file, "a") as afile:
+        afile.write(".")
 
     return None
 

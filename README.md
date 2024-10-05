@@ -65,8 +65,8 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas quis fringilla
 
 * [#df](#df_details)
 * [#call](#call_details)
-* [#playpy](#playpy_details)
 * [#recpy](#recpy_details)
+* [#playpy](#playpy_details)
 * [#sort.playpy](#sort.playpy_details)
 * [#place.playpy](#place.playpy_details) 
 
@@ -138,6 +138,6 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas quis fringilla
 
 ### #recpy<a id="recpy_details"></a>
 
-### #sort.playpy<a id="sortpy_details"></a>
+### #sort.playpy<a id="sort.playpy_details"></a>
 
-### #place.playpy<a id="rplaypy_details"></a>
+### #place.playpy<a id="place.playpy_details"></a>

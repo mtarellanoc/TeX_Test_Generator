@@ -1,10 +1,9 @@
 # !/usr/bin/python3.10
-from test_gen import most_recent, user_dict_and_container, recpy_callback
+from test_gen import select_file, user_dict_and_container, recpy_callback
 import os
 
-directory = most_recent()[0]
-file = most_recent()[1]
-os.chdir(directory)
+directory = os.getcwd()
+file = select_file()
 
 with open(file, 'r') as rfile:
     read_file = rfile.read()

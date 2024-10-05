@@ -1,10 +1,9 @@
 # !/usr/bin/python3.10
-from test_gen import most_recent, update_body, compile_tex
+from test_gen import update_body, compile_tex, select_file
 import os
 
-file = most_recent()[1]
-directory = most_recent()[0]
-os.chdir(directory)
+file = select_file()
+directory = os.getcwd()
 
 with open(file, 'r') as rfile:
      file_body = rfile.read()
@@ -35,6 +34,7 @@ if os.path.exists(directory_copies):  # if directory already exists erase all co
 else:  # if directory does not exist, create a new folder and transfer
     print(f'\nCreating directory: {directory_copies}')
     os.mkdir(directory_copies)
+    os.chdir(directory_copies)
 
 # Generating versions and copying them to assessment directory
 # ------------------------------------------
