@@ -1,6 +1,10 @@
 # LaTeX Test Generator
 This README file will go the contents of this repository and how it can be used to generate different versions of a document.
 
+### General_Overview<a id="general_overview"></a>
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas quis fringilla libero. Nunc in dui ex. Aenean efficitur, purus a consectetur efficitur, magna risus lobortis elit, sed posuere metus ante id lorem. Praesent nec metus nec dui pellentesque elementum nec ac ligula. Nam tincidunt est risus, vel cursus est condimentum et. Fusce pharetra eros vel tortor finibus, eu lacinia orci ultricies. Cras posuere purus id elementum dictum. Nam a lacus sit amet eros fermentum viverra non sed est. Integer ullamcorper placerat ultrices. Etiam molestie ligula sed erat malesuada, quis bibendum odio semper.
+
+
 ## Table of Contents
 
 * [General Overview](#general_overview)
@@ -9,8 +13,7 @@ This README file will go the contents of this repository and how it can be used 
 
 
 
-## General_Overview<a id="general_overview"></a>
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas quis fringilla libero. Nunc in dui ex. Aenean efficitur, purus a consectetur efficitur, magna risus lobortis elit, sed posuere metus ante id lorem. Praesent nec metus nec dui pellentesque elementum nec ac ligula. Nam tincidunt est risus, vel cursus est condimentum et. Fusce pharetra eros vel tortor finibus, eu lacinia orci ultricies. Cras posuere purus id elementum dictum. Nam a lacus sit amet eros fermentum viverra non sed est. Integer ullamcorper placerat ultrices. Etiam molestie ligula sed erat malesuada, quis bibendum odio semper.
+
 
 ## Python Scripts in this Repository<a id="python_scripts"></a>
 The repository contains three scripts:
@@ -38,11 +41,11 @@ When script is run directly, it will read the most recently updated **.tex* file
 - [#recpy](#recpy_details)  
     all contents between *#recpy* and *#stoppy* can be copied and pasted using *#playpy* or *importpy*.
 
-- [#sortpy](#sortpy_details)  
-    *recpy names* within *#sortpy* are randomly sorted, and are then called using *#rplaypy*
+- [#sort.playpy](#sort.playpy_details)  
+    *recpy names* within *#sort.playpy* are randomly sorted, and are then called using *#place.playpy*
 
-- [#rplaypy](#rplaypy_details)  
-    *#rplaypy* takes integers as its arguments, from 1 up to the amount of of *recpy names* listed in the previously defined *#sortpy*
+- [#place.playpy](#place.playpy_details)  
+    *#place.playpy* takes integers as its arguments, from 1 up to the amount of of *recpy names* listed in the previously defined *#sort.playpy*
 
 `
 Once the document has been read in, python will create a new document, **--Standalone.tex*, taking the body of the original **.tex* file and modifying based on the keywords listed above.
@@ -64,8 +67,8 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas quis fringilla
 * [#call](#call_details)
 * [#playpy](#playpy_details)
 * [#recpy](#recpy_details)
-* [#sortpy](#sortpy_details)
-* [#rplaypy](#rplaypy_details) 
+* [#sort.playpy](#sort.playpy_details)
+* [#place.playpy](#place.playpy_details) 
 
 
 ### #df<a id="df_details"></a>
@@ -135,6 +138,6 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas quis fringilla
 
 ### #recpy<a id="recpy_details"></a>
 
-### #sortpy<a id="sortpy_details"></a>
+### #sort.playpy<a id="sortpy_details"></a>
 
-### #rplaypy<a id="rplaypy_details"></a>
+### #place.playpy<a id="rplaypy_details"></a>
