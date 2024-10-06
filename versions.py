@@ -9,7 +9,7 @@ with open(file, 'r') as rfile:
      file_body = rfile.read()
 
 # uploading playpy_callbacks before changing directories
-file_body = update_body(file_body, True, False, False)
+file_body = update_body(file_body, True,True, True, False)
 
 # Indicating Number of duplicates to be made
 # ------------------------------------------
@@ -42,7 +42,7 @@ else:  # if directory does not exist, create a new folder and transfer
 for i in range(1, copies_int + 1):
     new_file = file.replace('.tex', f'--V{i}.tex')
 
-    file_new_body = update_body(file_body, False, True, True)
+    file_new_body = update_body(file_body, False, False,False, True)
 
     with open(new_file, 'w') as wfile:
         wfile.write(file_new_body)

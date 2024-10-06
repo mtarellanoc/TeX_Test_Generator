@@ -5,6 +5,7 @@ import sympy
 import random
 from fractions import Fraction
 
+from numpy.random import randint
 from pyarrow import string, list_
 
 # ------------DEFAULT SETTINGS--------------------------------------------------------------------
@@ -1388,7 +1389,53 @@ def load_local_packages(str_body):
     return str_body
 
 
-def update_body (str_body, bool_load_playpy=True, bool_load_fetch_variables = True, bool_load_local_packages = True):
+def load_sort_playpy(str_body):
+
+    playpy_sort = "#playpy.sort"
+    playpy_place = "#playpy.place"
+
+    active_body = str_body
+
+    if playpy_place in active_body.partition(playpy_sort)[0]:
+        print(f"Error -playpy_sort: #playpy.place is used before #playpy.sort")
+        sys.exit()
+
+    while True:
+        if playpy_sort not in active_body:
+            break
+
+        str_remove, container, user_dict = user_dict_and_container(active_body, playpy_sort)
+        code_list = string_partitioning_single_layer(user_dict,container)
+
+        # randomizing code_list
+        n = len(code_list)
+        for i in range(n):
+            j = random.randint(0, n - 1)
+            element = code_list.pop(j)
+            code_list.append(element)
+
+        str_range = active_body.partition(str_remove)[2].partition(playpy_sort)[0]
+        active_body = active_body.replace(str_remove, "", 1)
+        active_range = str_range
+        while True:
+            if playpy_place not in active_range:
+                break
+
+            playpy_remove, playpy_num, user_dict = user_dict_and_container(active_range, playpy_place)
+            new_playpy = playpy_remove.replace(playpy_place, "#playpy", 1).replace(playpy_num, code_list[int(playpy_num) - 1])
+            active_range = active_range.replace(playpy_remove, new_playpy, 1)
+
+        active_body = active_body.replace(str_range, active_range, 1)
+
+    str_body = active_body
+    return str_body
+
+
+def update_body (str_body, bool_load_sort_playpy = True, bool_load_playpy = True, bool_load_fetch_variables = True, bool_load_local_packages = True):
+
+    if bool_load_sort_playpy:
+        print("reading sort.playpy and place.playpy arguments:")
+        str_body = load_sort_playpy(str_body)
 
     if bool_load_playpy:
         print("loading playpy text:")
