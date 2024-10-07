@@ -2,7 +2,7 @@
 from test_gen import update_body, compile_tex, select_file
 import os
 
-file = select_file()
+file = select_file(".tex")
 directory = os.getcwd()
 
 with open(file, 'r') as rfile:

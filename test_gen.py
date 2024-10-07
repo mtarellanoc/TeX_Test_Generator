@@ -1464,7 +1464,7 @@ def compile_tex (file):
     return None
 
 
-def select_file():
+def select_file(file_type):
     """
     Returns list of .tex files ordered from most recent to last modified
     :return:
@@ -1472,7 +1472,7 @@ def select_file():
 
     list_tex_files = []
     for file in os.listdir('.'):
-        if file.endswith(".tex"):
+        if file.endswith(file_type):
             list_tex_files.append([file, os.path.getmtime(file)])
 
     if len(list_tex_files) == 0:
@@ -1516,7 +1516,7 @@ def main ():
     """
 
     # finds and selects most recent file in directory
-    file = select_file()
+    file = select_file(".tex")
 
     with open(file, 'r') as rfile:
         read_file = rfile.read()

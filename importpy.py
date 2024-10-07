@@ -3,7 +3,7 @@ from test_gen import select_file, user_dict_and_container, recpy_callback
 import os
 
 directory = os.getcwd()
-file = select_file()
+file = select_file(".tex")
 
 with open(file, 'r') as rfile:
     read_file = rfile.read()
