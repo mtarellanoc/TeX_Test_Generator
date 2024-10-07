@@ -1281,18 +1281,24 @@ def recpy_callback (playpy_code, str_body):
 
     rec_body = str_body
     while True:
+
         # searching within document
-        if recpy in rec_body:
-            str_remove_rec, recpy_code, user_dict_recpy = user_dict_and_container(rec_body, recpy)
 
-            if recpy_code == playpy_code:
-                recpy_found_bool = True
-                str_copy = rec_body.partition(str_remove_rec)[2].partition(stoppy)[0]
+        if str_body.count(recpy) != str_body.count(recpy):
+            print(f"Error -recpy: there is a mismatch of #recpy to #stoppy in original file.")
+            sys.exit()
 
-            rec_body = rec_body.replace(str_remove_rec, "", 1)
-
-        else:
+        if recpy not in rec_body:
             break
+
+        str_remove_rec, recpy_code, user_dict_recpy = user_dict_and_container(rec_body, recpy)
+
+        if recpy_code == playpy_code:
+            recpy_found_bool = True
+            str_copy = rec_body.partition(str_remove_rec)[2].partition(stoppy)[0]
+
+
+        rec_body = rec_body.replace(str_remove_rec, "", 1)
 
         if recpy_found_bool:
             break
@@ -1303,11 +1309,15 @@ def recpy_callback (playpy_code, str_body):
 
             if file.endswith('.tex'):
                 with open(file, 'r') as rfile:
-
                     read_file = rfile.read()
+                    if read_file.count(recpy) != read_file.count(recpy):
+                        print(f"Error -recpy: there is a mismatch of #recpy to #stoppy in {file}.")
+                        sys.exit()
+
                     while True:
                         if recpy not in read_file:
                             break
+
                         str_remove_file, container_file, user_dict_file = user_dict_and_container(read_file,
                                                                                                   recpy)
                         if container_file == playpy_code:
@@ -1319,6 +1329,10 @@ def recpy_callback (playpy_code, str_body):
 
                     if recpy_found_bool:
                         break
+
+    if not recpy_found_bool:
+        print(f"Error -playpy: no #recpy found in\n{os.getcwd()}\n with code {playpy_code}")
+        sys.exit()
 
     return str_copy
 
@@ -1337,12 +1351,12 @@ def load_playpy(str_body):
 
         str_remove, playpy_code, user_dict_playpy =  user_dict_and_container(active_body, playpy)
         str_copy = recpy_callback(playpy_code,active_body)
-        active_body = active_body.replace(str_remove,str_copy, 1)
 
-    str_body = active_body
+        active_body = active_body.replace(str_remove,str_copy, 1)
 
     # cleans up original document by removing #recpy  and stoppy from body
     # --------------------------------------------------------------------
+    str_body = active_body
     while True:
         if recpy not in str_body:
             break
@@ -1433,26 +1447,33 @@ def load_sort_playpy(str_body):
 
 def update_body (str_body, bool_load_sort_playpy = True, bool_load_playpy = True, bool_load_fetch_variables = True, bool_load_local_packages = True):
 
+    print("-----------UPDATING BODY ------------------------")
     if bool_load_sort_playpy:
         print("reading sort.playpy and place.playpy arguments:")
         str_body = load_sort_playpy(str_body)
+        print("loading playpy.place complete!\n")
 
     if bool_load_playpy:
         print("loading playpy text:")
         str_body = load_playpy(str_body)
+        print("loading playpy complete!\n")
 
     if bool_load_fetch_variables:
         print("reading #df and #call arguments:")
         str_body = load_fetch_variables(str_body)
+        print("loading variables complete!\n")
 
     if bool_load_local_packages:
         print("loading local packages:")
         str_body = load_local_packages(str_body)
+        print("loading local packages complete!\n")
+    print("-------------------------------------------------")
 
     return str_body
 
 
 def compile_tex (file):
+    print(f"Compiling {file}...")
     os.system(f'pdflatex {file}')
     os.system(f'pdflatex {file}')
 
@@ -1504,7 +1525,7 @@ def select_file(file_type):
 
     user_input = int(input(f"\nSelect file number (1 - {len(list_tex_files)}): ") or 1)
     file = list_tex_files[user_input - 1][0]
-
+    print(f"You have selected: {file}")
     return file
 
 
@@ -1523,7 +1544,7 @@ def main ():
 
     read_file = update_body(read_file)
 
-    new_file = f"{file.split('.')[0]}--Standalone.tex"
+    new_file = f"{file.split('.tex')[0]}--Standalone.tex"
     with open(new_file, 'w') as wfile:
         wfile.write(read_file)
 
