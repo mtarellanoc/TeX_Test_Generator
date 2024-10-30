@@ -5,11 +5,9 @@ import sympy
 import random
 from fractions import Fraction
 
-from numpy.random import randint
-from pyarrow import string, list_
-
 # ------------DEFAULT SETTINGS--------------------------------------------------------------------
 home_directory = "/home/tovy/Desktop/"
+template_directory = "/media/tovy/1TB/Templates/"
 df_keyword = "#df"
 call_keyword = "#call"
 
@@ -134,7 +132,7 @@ def user_dict_and_container (str_body, keyword):
             arguments within container,
             user_dict
     """
-    active_body = str_body
+    active_region = str_body
     str_remove = f"{keyword}"
 
     # Default settings for user_dict
@@ -147,26 +145,16 @@ def user_dict_and_container (str_body, keyword):
     }
 
     # modifying user_dict and identifying str_remove-------------------------------------------
+
     while True:
-
         # partitioning only the content between keyword and open_container
-        active_argument = active_body.partition(keyword)[2].partition(f" {user_dict['open_container']}")[0]
+        active_argument = active_region.partition(keyword)[2].partition(f" {user_dict['open_container']}")[0]
 
-        #  removing leading whitespace before argument, while also recording it in str_remove
-        for k in active_argument:
-            if k == " ":
-                str_remove = f"{str_remove} "
-                active_argument = active_argument.replace(" ", "", 1)
-                active_body = active_body.replace(" ", "", 1)
-            else:
-                break
+        # removing leading and trailing white space, then separating arguments using space as the delimiter
+        active_argument = active_argument.strip().partition(" ")[0]
 
-        #  taking only the first argument as active_argument
-        active_argument = active_argument.partition(" ")[0]
-
-        # both adding active_argument to str_remove and removing it from active_body
-        active_body = active_body.replace(active_argument, "", 1)
-        str_remove = f"{str_remove}{active_argument}"
+        # removing this argument from active region
+        active_region = active_region.replace(active_argument, "", 1)
 
         # if there is nothing inside left
         if len(active_argument) == 0:
@@ -174,7 +162,6 @@ def user_dict_and_container (str_body, keyword):
 
         if "=" not in active_argument:
             continue
-
         else:
             name = active_argument.split("=")[0]
             value = active_argument.split("=")[1]
@@ -183,12 +170,15 @@ def user_dict_and_container (str_body, keyword):
             else:
                 print(f"Error: -{name}- is not found in user_dict.")
 
+
     # prepping str_body to obtain container-------------
-    str_body_temp = str_body.replace(str_remove, keyword, 1)
+    # removing custom dictionary def's
+    open_c = user_dict['open_container']
+    keyword_to_open_container = f'{keyword}{str_body.partition(keyword)[2].partition(f" {open_c}")[0]}'
 
-    container, original_str_remove = string_extract(user_dict, str_body_temp, keyword )
-
-    str_remove = original_str_remove.replace(keyword, str_remove,1)
+    str_body_with_no_user_dict = str_body.replace(keyword_to_open_container, f"{keyword}", 1)
+    container, str_remove_no_dict = string_extract(user_dict, str_body_with_no_user_dict, keyword )
+    str_remove = str_remove_no_dict.replace(keyword, keyword_to_open_container,1)
 
     return str_remove, container, user_dict
 
@@ -204,10 +194,12 @@ def rand (user_dict, min_range = 1, max_range = 10, value_type = "int", weights 
     :param amount:
     :return: list of values
     """
+    open_c = user_dict['open_container']
+    close_c = user_dict['close_container']
     delimiter = user_dict['delimiter']
     amount = int(amount)
     list_values = []
-    weights = weights[1:-1]  # removing opening and closing container
+    weights = weights[len(open_c):-len(close_c)] # removing opening and closing container
 
     # if value_type is int or decimal-----------------------------------------------------------
     # ------------------------------------------------------------------------------------------
@@ -413,15 +405,16 @@ def list_order (list_var):
 
 
 def computer_algebraic_system (user_dict, str_expression):
-    
-    if str_expression[0] ==user_dict['open_container'] and str_expression[-1] == user_dict['close_container']:
-        str_expression = str_expression[1:-1]
+    open_c = user_dict['open_container']
+    close_c = user_dict['close_container']
+    if str_expression[0:len(open_c)] ==open_c and str_expression[-1:-len(close_c)-1:-1] == close_c:
+        str_expression = str_expression[len(open_c):-len(close_c)]
 
     delimiter = user_dict['delimiter']
     str_expression = str(str_expression)  # changing the str_expression to a string variable
 
     if "verbatim" in str_expression:
-        str_expression = str_expression.replace("verbatim ", "", 1)
+        str_expression = str_expression.replace("verbatim ", "", 1).strip()
         return str_expression
 
     keywords = ["latex", "substitute", "solve", "simplify", 'expand', "factor", "log", "differentiate",
@@ -862,14 +855,13 @@ def record_variable (variable_name, values, local = False):
 
 
 def load_variables (str_body):
+
     str_remove, container, user_dict= user_dict_and_container(str_body, df_keyword)
     arguments = string_partitioning_single_layer(user_dict, container)
 
     open_c = user_dict['open_container']
     close_c = user_dict['close_container']
     delimiter = user_dict['delimiter']
-    hashtag = user_dict['variable_call']
-
 
     # Each element will contain all the information of newly-defined variable
     global_variables = []
@@ -921,7 +913,6 @@ def load_variables (str_body):
                 if name == "add values":
                     # identifying function ----------------------------------
                     function = value.split(open_c)[0].strip()
-
                     if function == "rand":  # rand option-------
                         # ----------------------------------------------------------------------------------------
                         # ----------------------------------------------------------------------------------------
@@ -963,7 +954,7 @@ def load_variables (str_body):
                                     if "int" not in rand_arg_value:  # this only applies to decimal, improper and mixed
                                         #  Separating keyword from container expressions
                                         keyword = rand_arg_value.split(open_c)[0]
-                                        container_str = rand_arg_value.partition(open_c)[2][:-1]
+                                        container_str = rand_arg_value.partition(open_c)[2][:-len(close_c)]
 
                                         expressions = string_partitioning_single_layer(user_dict, container_str)
 
@@ -1008,7 +999,7 @@ def load_variables (str_body):
                         # identifies the expression within the extend keyword
                         # -------------------------------------------------------
 
-                        expression = value.partition(open_c)[2][:-1]
+                        expression = value.partition(open_c)[2][:-len(close_c)-1]
                         expression_list = string_partitioning_single_layer(user_dict, expression)
                         for expression in  expression_list:
                             variable_dict['add values'].extend(variable_extension(user_dict, expression))
@@ -1055,9 +1046,7 @@ def load_variables (str_body):
             else:  # if local variable is false
                 # if new variable ----------------------------------------------------------------
                 if variable_dict['variable name'] not in df_global.index:  # if variable name not found in dataframe, add
-
                     record_variable(variable_dict["variable name"], variable_dict["add values"])
-
                     break
                     #  ---------------------------------------------------------------------------
 
@@ -1143,7 +1132,7 @@ def fetch_variables (str_body):
 
         # Updating tabular_dict with user-defined values
         # -------------------------------
-        tabular_raw_arguments = arguments[1].partition(open_c)[2][:-1]
+        tabular_raw_arguments = arguments[1].partition(open_c)[2][:-len(close_c)-1]
         tabular_list_arguments = string_partitioning_single_layer(user_dict, tabular_raw_arguments)
         for arg in tabular_list_arguments:
             keyword = arg.partition("=")[0].strip()
@@ -1259,6 +1248,7 @@ def load_fetch_variables(str_body):
 
     while True:
 
+
         if df_keyword not in str_body and call_keyword not in str_body:
             break
 
@@ -1331,6 +1321,37 @@ def recpy_callback (playpy_code, str_body):
                         break
 
     if not recpy_found_bool:
+        # searching in template directory
+        active_directory = os.getcwd()
+        os.chdir(template_directory)
+        for file in os.listdir("."):
+
+            if file.endswith('.tex'):
+                with open(file, 'r') as rfile:
+                    read_file = rfile.read()
+                    if read_file.count(recpy) != read_file.count(recpy):
+                        print(f"Error -recpy: there is a mismatch of #recpy to #stoppy in {file}.")
+                        sys.exit()
+
+                    while True:
+                        if recpy not in read_file:
+                            break
+
+                        str_remove_file, container_file, user_dict_file = user_dict_and_container(read_file,
+                                                                                                  recpy)
+                        if container_file == playpy_code:
+                            recpy_found_bool = True
+                            str_copy = read_file.partition(str_remove_file)[2].partition(stoppy)[0]
+                            break
+                        else:
+                            read_file = read_file.replace(str_remove_file, "", 1)
+
+                    if recpy_found_bool:
+                        break
+
+        os.chdir(active_directory)
+
+    if not recpy_found_bool:
         print(f"Error -playpy: no #recpy found in\n{os.getcwd()}\n with code {playpy_code}")
         sys.exit()
 
@@ -1369,6 +1390,43 @@ def load_playpy(str_body):
             str_body = str_body.replace(stoppy, "", 1)
         else:
             break
+    return str_body
+
+
+def load_input(str_body):
+    input = r"#input"
+
+    while True:
+        if input not in str_body:
+            break
+
+        str_remove_file, input_file, user_dict_file = user_dict_and_container(str_body, input)
+
+        print(f"Loadin {input_file}")
+        if input_file in os.listdir("."):
+            with open(input_file, 'r') as rfile:
+                read_file = rfile.read()
+                if r'\documentclass' in read_file:
+                    replace_str = read_file.partition(r'\begin{document}')[2].partition(r'\end{document}')[0]
+                else:
+                    replace_str = read_file
+        else:
+            active_directory = os.getcwd()
+            os.chdir(template_directory)
+            if input_file in os.listdir("."):
+                with open(input_file, 'r') as rfile:
+                    read_file = rfile.read()
+                    if r'\documentclass' in read_file:
+                        replace_str = read_file.partition(r'\begin{document}')[2].partition(r'\end{document}')[0]
+                    else:
+                        replace_str = read_file
+            else:
+                print(f"Error -input: no #input found in\n{os.getcwd()}\n with {input}")
+                sys.exit()
+
+            os.chdir(active_directory)
+
+        str_body = str_body.replace(str_remove_file, replace_str, 1)
 
     return str_body
 
@@ -1397,6 +1455,27 @@ def load_local_packages(str_body):
 
                 # Updates active_string
                 active_string = active_string.replace(usepackage_file, package_content)
+
+    active_directory = os.getcwd()
+    os.chdir(template_directory)
+    for file in os.listdir("."):
+        if file.endswith(".sty"):
+            file_name = file.replace(".sty", "")
+            usepackage_file = f"\\usepackage{{{file_name}}}"
+
+            if usepackage_file in active_string:
+
+                package_file = open(file, "r")
+                package_read = package_file.read()
+                package_file.close()
+
+                # clean up package file-- copies between \ProvidesPackage{  and \endinput
+                package_content = package_read.partition(f'\\ProvidesPackage{{{file_name}}}')[2].partition(r"\endinput")[0]
+
+                # Updates active_string
+                active_string = active_string.replace(usepackage_file, package_content)
+
+    os.chdir(active_directory)
 
     str_body = active_string
 
@@ -1445,9 +1524,14 @@ def load_sort_playpy(str_body):
     return str_body
 
 
-def update_body (str_body, bool_load_sort_playpy = True, bool_load_playpy = True, bool_load_fetch_variables = True, bool_load_local_packages = True):
+def update_body (str_body, bool_load_input = True, bool_load_sort_playpy = True, bool_load_playpy = True, bool_load_fetch_variables = True, bool_load_local_packages = True):
 
-    print("-----------UPDATING BODY ------------------------")
+    print("-----------UPDATING BODY-TEXT -------------------")
+    if bool_load_input:
+        print("reading #input arguments")
+        str_body = load_input(str_body)
+        print("loading #input complete!\n")
+
     if bool_load_sort_playpy:
         print("reading sort.playpy and place.playpy arguments:")
         str_body = load_sort_playpy(str_body)
@@ -1491,42 +1575,39 @@ def select_file(file_type):
     :return:
     """
 
-    list_tex_files = []
-    for file in os.listdir('.'):
-        if file.endswith(file_type):
-            list_tex_files.append([file, os.path.getmtime(file)])
+    paths = ["/home/tovy/Desktop/"]
 
-    if len(list_tex_files) == 0:
-        print(f"Error: No tex files found in:\n{os.getcwd()}")
-        sys.exit()
-
-    # arrange list_tex_files based on last date modified
+    # list of subdirectories
+    i = 0
     while True:
-        repeat_bool = False
-        i = 1
-        while i < len(list_tex_files):
-            if list_tex_files[i][1] > list_tex_files[i - 1][1]:
-                repeat_bool = True
-                temp = list_tex_files[i]
-                list_tex_files[i] = list_tex_files[i - 1]
-                list_tex_files[i - 1] = temp
-            i = i + 1
+        active_directory = paths[i]
+        os.chdir(active_directory)
+        for item in os.listdir('.'):
+            if os.path.isdir(item):
+                full_path = f"{active_directory}{item}/"
+                paths.append(full_path)
 
-        if not repeat_bool:
+        if i == len(paths) - 1:
             break
 
-    # displays files in terminal
-    print(f"tex files in directory:\n{os.getcwd()}\nOrdered by date-modified, starting with most recently modified.\n")
-
-    i = 1
-    while i <= len(list_tex_files):
-        print(f"{i}-{list_tex_files[i - 1][0]}")
         i = i + 1
 
-    user_input = int(input(f"\nSelect file number (1 - {len(list_tex_files)}): ") or 1)
-    file = list_tex_files[user_input - 1][0]
-    print(f"You have selected: {file}")
-    return file
+    # identifying most recent file
+    # COMPARABLE VARIABLES-------------
+    most_recent_file = ["", "", -1]
+    # ---------------------------------
+
+    for dir in paths:
+        os.chdir(dir)
+
+        for file in os.listdir(dir):
+            if file.endswith(file_type) and "--" not in file:
+                current_file = [dir, file, os.path.getmtime(file)]
+                if current_file[2] >= most_recent_file[2]:
+                    most_recent_file = current_file
+
+    os.chdir(most_recent_file[0])
+    return most_recent_file[1]
 
 
 def main ():
@@ -1535,10 +1616,9 @@ def main ():
     then compiles new file
     :return: None
     """
-
+    os.system('clear')
     # finds and selects most recent file in directory
     file = select_file(".tex")
-
     with open(file, 'r') as rfile:
         read_file = rfile.read()
 
@@ -1548,10 +1628,13 @@ def main ():
     with open(new_file, 'w') as wfile:
         wfile.write(read_file)
 
-    compile_tex(new_file)
+    print("-------------------------------------------------")
+    print(df_global[['active_values']])
+    print("-------------------------------------------------")
+    print("-------------------------------------------------")
 
-    # convert new_pdf to old
-    os.system(f"mv {new_file.split('.')[0]}.pdf {new_file.split('--Standalone.tex')[0]}.pdf")
+    compile_tex(new_file)
+    os.rename(f'{os.getcwd()}/{new_file.split(".")[0]}.pdf', f'{os.getcwd()}/{new_file.split("--")[0]}.pdf ')
 
     with open(file, "a") as afile:
         afile.write(".")

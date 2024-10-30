@@ -11,7 +11,7 @@ with open(file, 'r') as rfile:
      file_body = rfile.read()
 
 # uploading playpy_callbacks before changing directories
-file_body = update_body(file_body, False,False, False, True)
+file_body = update_body(file_body, True,False,False, False, True)
 
 # Indicating Number of duplicates to be made
 # ------------------------------------------
@@ -44,7 +44,7 @@ else:  # if directory does not exist, create a new folder and transfer
 # ------------------------------------------
 for i in range(1, copies_int + 1):
 
-    file_new_body = update_body(file_body, True, True,True, False)
+    file_new_body = update_body(file_body, False,True, True,True, False)
     os.chdir(directory_copies)
 
     new_file = file.replace('.tex', f'--V{i}.tex')
